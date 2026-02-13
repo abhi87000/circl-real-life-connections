@@ -16,6 +16,9 @@ export interface Plan {
   creatorAvatar: string;
   creatorRating: number;
   description: string;
+  memberAvatars: string[];
+  spotsLeft: number;
+  isHot?: boolean;
 }
 
 export interface UserProfile {
@@ -39,6 +42,17 @@ export const categoryIcons: Record<PlanCategory, string> = {
   jogging: '🏃',
   hobby: '🎨',
   event: '🎉',
+};
+
+export const categoryColors: Record<PlanCategory, string> = {
+  movie: '262 83% 58%',
+  gym: '0 84% 60%',
+  coffee: '30 80% 50%',
+  study: '210 52% 24%',
+  travel: '173 58% 39%',
+  jogging: '142 71% 45%',
+  hobby: '330 65% 55%',
+  event: '38 92% 50%',
 };
 
 export const categoryLabels: Record<PlanCategory, string> = {
@@ -68,6 +82,9 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'AM',
     creatorRating: 4.7,
     description: 'Catching the latest releases. Open to all film lovers!',
+    memberAvatars: ['AM', 'PS', 'NK'],
+    spotsLeft: 3,
+    isHot: true,
   },
   {
     id: '2',
@@ -84,6 +101,8 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'RK',
     creatorRating: 4.9,
     description: 'Looking for a consistent gym partner for morning workouts.',
+    memberAvatars: ['RK'],
+    spotsLeft: 1,
   },
   {
     id: '3',
@@ -100,6 +119,8 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'PS',
     creatorRating: 4.8,
     description: 'Casual coding session over good coffee. All skill levels welcome.',
+    memberAvatars: ['PS', 'DM'],
+    spotsLeft: 2,
   },
   {
     id: '4',
@@ -116,6 +137,9 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'SR',
     creatorRating: 4.6,
     description: 'Serious study group for UPSC prelims prep. Consistent members only.',
+    memberAvatars: ['SR', 'AK', 'MJ', 'RP'],
+    spotsLeft: 1,
+    isHot: true,
   },
   {
     id: '5',
@@ -132,6 +156,8 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'AT',
     creatorRating: 4.5,
     description: 'Looking for a jogging buddy for weekend mornings. 5K pace.',
+    memberAvatars: ['AT'],
+    spotsLeft: 1,
   },
   {
     id: '6',
@@ -148,6 +174,8 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'VD',
     creatorRating: 4.8,
     description: 'Early morning trek with sunrise view. Transport arranged.',
+    memberAvatars: ['VD', 'KS', 'RN', 'AP', 'SG'],
+    spotsLeft: 3,
   },
 ];
 
