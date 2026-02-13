@@ -1,9 +1,8 @@
-import { MapPin, Clock, Users } from 'lucide-react';
+import { MapPin, Clock, Flame } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Plan, categoryIcons } from '@/data/mockData';
+import { Plan, categoryIcons, categoryColors } from '@/data/mockData';
 import { motion } from 'framer-motion';
 
 interface PlanCardProps {
@@ -11,69 +10,109 @@ interface PlanCardProps {
   onJoin: (plan: Plan) => void;
 }
 
-const GenderDots = ({ ratio }: { ratio: Plan['genderRatio'] }) => {
-  const total = ratio.male + ratio.female + ratio.other;
-  if (total === 0) return null;
-  const dots = [
-    ...Array(ratio.male).fill('bg-blue-400'),
-    ...Array(ratio.female).fill('bg-pink-400'),
-    ...Array(ratio.other).fill('bg-muted-foreground'),
-  ];
-  return (
-    <div className="flex items-center gap-0.5">
-      {dots.map((color, i) => (
-        <span key={i} className={cn('h-1.5 w-1.5 rounded-full', color)} />
+const MemberAvatars = ({ avatars, spotsLeft }: { avatars: string[]; spotsLeft: number }) => (
+  <div className="flex items-center">
+    <div className="flex -space-x-2.5">
+      {avatars.slice(0, 4).map((initials, i) => (
+        <motion.div
+          key={i}
+          initial={{ scale: 0, x: -8 }}
+          animate={{ scale: 1, x: 0 }}
+          transition={{ delay: i * 0.06, type: 'spring', stiffness: 300 }}
+          className="relative h-7 w-7 rounded-full border-2 border-card bg-primary/10 flex items-center justify-center"
+          style={{ zIndex: avatars.length - i }}
+        >
+          <span className="text-[9px] font-bold text-primary">{initials}</span>
+        </motion.div>
       ))}
+      {avatars.length > 4 && (
+        <div className="relative h-7 w-7 rounded-full border-2 border-card bg-muted flex items-center justify-center" style={{ zIndex: 0 }}>
+          <span className="text-[9px] font-medium text-muted-foreground">+{avatars.length - 4}</span>
+        </div>
+      )}
     </div>
-  );
-};
+    <span className="ml-2 text-xs text-muted-foreground">
+      {avatars.length} going
+    </span>
+  </div>
+);
 
 const PlanCard = ({ plan, onJoin }: PlanCardProps) => {
+  const accentColor = categoryColors[plan.category];
+  const isUrgent = plan.spotsLeft <= 2;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.35 }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.985 }}
     >
-      <Card className="border-border/60 shadow-sm hover:shadow-md transition-shadow">
+      <Card className="border-border/60 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+        {/* Category accent strip */}
+        <div className="h-1 w-full" style={{ background: `hsl(${accentColor})` }} />
+
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">{categoryIcons[plan.category]}</span>
-                <Badge variant="secondary" className="text-[10px] font-medium uppercase tracking-wide">
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{
+                    background: `hsl(${accentColor} / 0.1)`,
+                    color: `hsl(${accentColor})`,
+                  }}
+                >
                   {plan.type === 'partner' ? '1:1' : 'Group'}
-                </Badge>
+                </span>
+                {plan.isHot && (
+                  <motion.span
+                    animate={{ scale: [1, 1.15, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.8 }}
+                    className="flex items-center gap-0.5 text-[10px] font-semibold text-destructive"
+                  >
+                    <Flame className="h-3 w-3" /> Hot
+                  </motion.span>
+                )}
               </div>
-              <h3 className="font-semibold text-foreground truncate">{plan.title}</h3>
+              <h3 className="font-semibold text-foreground truncate text-[15px] leading-tight">{plan.title}</h3>
               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{plan.description}</p>
-            </div>
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-              {plan.creatorAvatar}
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          {/* Meta row */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
               <MapPin className="h-3 w-3" /> {plan.location}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" /> {plan.date} · {plan.time}
             </span>
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" /> {plan.currentMembers}/{plan.groupSize}
-            </span>
           </div>
 
-          <div className="mt-3 flex items-center justify-between">
-            <GenderDots ratio={plan.genderRatio} />
-            <Button
-              size="sm"
-              className="h-8 rounded-full px-5 text-xs font-semibold"
-              onClick={() => onJoin(plan)}
-            >
-              Join
-            </Button>
+          {/* Bottom row: avatars + urgency + join */}
+          <div className="mt-3.5 flex items-center justify-between">
+            <MemberAvatars avatars={plan.memberAvatars} spotsLeft={plan.spotsLeft} />
+            <div className="flex items-center gap-2">
+              {isUrgent && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-[10px] font-semibold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full"
+                >
+                  {plan.spotsLeft === 1 ? 'Last spot!' : `${plan.spotsLeft} left`}
+                </motion.span>
+              )}
+              <Button
+                size="sm"
+                className="h-8 rounded-full px-5 text-xs font-semibold shadow-sm"
+                onClick={() => onJoin(plan)}
+              >
+                Join
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
