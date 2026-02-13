@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
-import { MapPin, SlidersHorizontal, TrendingUp, Clock, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, SlidersHorizontal, TrendingUp, Clock, Sparkles, Heart } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import PlanCard from '@/components/PlanCard';
 import JoinModal from '@/components/JoinModal';
 import BottomNav from '@/components/BottomNav';
-import { mockPlans, Plan } from '@/data/mockData';
+import { mockPlans, mockProfile, Plan, categoryLabels } from '@/data/mockData';
 import { motion } from 'framer-motion';
 
 const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
@@ -24,16 +24,21 @@ const Index = () => {
     setModalOpen(true);
   };
 
+  const interestKeywords = mockProfile.interests.map((i) => i.toLowerCase());
+
   const filterByType = (type: 'partner' | 'group') => {
     const plans = mockPlans.filter((p) => p.type === type);
     const happeningSoon = plans.filter((p) => p.startsInHours && p.startsInHours <= 12);
     const trending = plans.filter((p) => p.isTrending);
-    const rest = plans.filter((p) => !happeningSoon.includes(p) && !trending.includes(p));
-    return { happeningSoon, trending, rest };
+    const forYou = plans.filter((p) => interestKeywords.includes(categoryLabels[p.category].toLowerCase()));
+    const rest = plans.filter(
+      (p) => !happeningSoon.includes(p) && !trending.includes(p) && !forYou.includes(p)
+    );
+    return { happeningSoon, trending, forYou, rest };
   };
 
   const renderSections = (type: 'partner' | 'group') => {
-    const { happeningSoon, trending, rest } = filterByType(type);
+    const { happeningSoon, trending, forYou, rest } = filterByType(type);
 
     return (
       <motion.div
@@ -57,6 +62,17 @@ const Index = () => {
             <SectionHeader icon={TrendingUp} title="Trending Near You" />
             <div className="space-y-4">
               {trending.map((plan) => (
+                <PlanCard key={plan.id} plan={plan} onJoin={handleJoin} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {forYou.length > 0 && (
+          <>
+            <SectionHeader icon={Heart} title="Based on Your Interests" />
+            <div className="space-y-4">
+              {forYou.map((plan) => (
                 <PlanCard key={plan.id} plan={plan} onJoin={handleJoin} />
               ))}
             </div>
