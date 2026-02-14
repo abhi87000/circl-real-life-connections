@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, SlidersHorizontal, TrendingUp, Clock, Sparkles, Heart } from 'lucide-react';
+import { MapPin, SlidersHorizontal, TrendingUp, Clock, Sparkles, Heart, Users } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import PlanCard from '@/components/PlanCard';
@@ -14,6 +14,43 @@ const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: 
     <h2 className="text-sm font-semibold text-foreground">{title}</h2>
   </div>
 );
+
+const SocialProofBanner = () => {
+  const stats = [
+    { text: '12 people met through Circl this week', delay: 0 },
+    { text: '3 plans starting in the next 4 hours', delay: 8 },
+    { text: '45 active members near you', delay: 16 },
+  ];
+
+  return (
+    <div className="relative overflow-hidden rounded-xl bg-primary/[0.04] border border-primary/10 px-4 py-2.5 mb-4">
+      <div className="flex items-center gap-2.5">
+        <span className="relative flex h-2 w-2 shrink-0">
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ background: 'hsl(var(--circl-success))' }}
+          />
+          <span
+            className="relative inline-flex rounded-full h-2 w-2"
+            style={{ background: 'hsl(var(--circl-success))' }}
+          />
+        </span>
+        <div className="overflow-hidden h-5">
+          <motion.div
+            animate={{ y: [0, 0, -20, -20, -40, -40, 0] }}
+            transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut', times: [0, 0.3, 0.33, 0.63, 0.66, 0.96, 1] }}
+          >
+            {stats.map((s, i) => (
+              <p key={i} className="text-xs font-medium text-foreground/80 h-5 flex items-center">
+                {s.text}
+              </p>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Index = () => {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -50,8 +87,8 @@ const Index = () => {
           <>
             <SectionHeader icon={Clock} title="Happening Soon" />
             <div className="space-y-4">
-              {happeningSoon.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} onJoin={handleJoin} />
+              {happeningSoon.map((plan, i) => (
+                <PlanCard key={plan.id} plan={plan} onJoin={handleJoin} featured={i === 0} />
               ))}
             </div>
           </>
@@ -114,6 +151,9 @@ const Index = () => {
 
       {/* Content */}
       <main className="mx-auto max-w-lg px-5 pt-2">
+        {/* Social proof banner */}
+        <SocialProofBanner />
+
         <Tabs defaultValue="partner" className="w-full">
           <TabsList className="w-full rounded-full bg-muted p-1 h-11">
             <TabsTrigger
