@@ -1,25 +1,31 @@
 import { useState } from 'react';
-import { MapPin, SlidersHorizontal, TrendingUp, Clock, Sparkles, Heart, Users } from 'lucide-react';
+import { MapPin, SlidersHorizontal, TrendingUp, Clock, Sparkles, Heart, Users, Layers } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import PlanCard from '@/components/PlanCard';
+import TimeClusterCard from '@/components/TimeClusterCard';
 import JoinModal from '@/components/JoinModal';
+import WaitlistModal from '@/components/WaitlistModal';
+import OverflowModal from '@/components/OverflowModal';
 import BottomNav from '@/components/BottomNav';
-import { mockPlans, mockProfile, Plan, categoryLabels } from '@/data/mockData';
+import { mockPlans, mockTimeClusters, mockProfile, Plan, TimeCluster, categoryLabels } from '@/data/mockData';
 import { motion } from 'framer-motion';
 
-const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
+const SectionHeader = ({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle?: string }) => (
   <div className="flex items-center gap-2 mb-3 mt-6 first:mt-0">
     <Icon className="h-4 w-4 text-primary" />
-    <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+    <div>
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      {subtitle && <p className="text-[10px] text-muted-foreground">{subtitle}</p>}
+    </div>
   </div>
 );
 
 const SocialProofBanner = () => {
   const stats = [
-    { text: '12 people met through Circl this week', delay: 0 },
-    { text: '3 plans starting in the next 4 hours', delay: 8 },
-    { text: '45 active members near you', delay: 16 },
+    { text: '12 people met through Circl this week' },
+    { text: '3 plans starting in the next 4 hours' },
+    { text: '45 active members near you' },
   ];
 
   return (
@@ -55,10 +61,29 @@ const SocialProofBanner = () => {
 const Index = () => {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [waitlistPlan, setWaitlistPlan] = useState<Plan | null>(null);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [overflowCluster, setOverflowCluster] = useState<TimeCluster | null>(null);
+  const [overflowOpen, setOverflowOpen] = useState(false);
 
   const handleJoin = (plan: Plan) => {
-    setSelectedPlan(plan);
-    setModalOpen(true);
+    if (plan.status === 'full') {
+      setWaitlistPlan(plan);
+      setWaitlistOpen(true);
+    } else {
+      setSelectedPlan(plan);
+      setModalOpen(true);
+    }
+  };
+
+  const handleWaitlist = (plan: Plan) => {
+    setWaitlistPlan(plan);
+    setWaitlistOpen(true);
+  };
+
+  const handleOverflow = (cluster: TimeCluster) => {
+    setOverflowCluster(cluster);
+    setOverflowOpen(true);
   };
 
   const interestKeywords = mockProfile.interests.map((i) => i.toLowerCase());
@@ -71,11 +96,17 @@ const Index = () => {
     const rest = plans.filter(
       (p) => !happeningSoon.includes(p) && !trending.includes(p) && !forYou.includes(p)
     );
-    return { happeningSoon, trending, forYou, rest };
+
+    // Get clusters relevant to this type
+    const relevantClusters = mockTimeClusters.filter(tc =>
+      tc.plans.some(p => p.type === type)
+    );
+
+    return { happeningSoon, trending, forYou, rest, relevantClusters };
   };
 
   const renderSections = (type: 'partner' | 'group') => {
-    const { happeningSoon, trending, forYou, rest } = filterByType(type);
+    const { happeningSoon, trending, forYou, rest, relevantClusters } = filterByType(type);
 
     return (
       <motion.div
@@ -85,10 +116,28 @@ const Index = () => {
       >
         {happeningSoon.length > 0 && (
           <>
-            <SectionHeader icon={Clock} title="Happening Soon" />
+            <SectionHeader icon={Clock} title="Happening Soon" subtitle="Starting in the next few hours" />
             <div className="space-y-4">
               {happeningSoon.map((plan, i) => (
                 <PlanCard key={plan.id} plan={plan} onJoin={handleJoin} featured={i === 0} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Time Slot Clusters */}
+        {relevantClusters.length > 0 && (
+          <>
+            <SectionHeader icon={Layers} title="Popular Time Slots" subtitle="Multiple groups at the same time" />
+            <div className="space-y-4">
+              {relevantClusters.map((cluster) => (
+                <TimeClusterCard
+                  key={cluster.id}
+                  cluster={cluster}
+                  onJoin={handleJoin}
+                  onWaitlist={handleWaitlist}
+                  onCreateOverflow={handleOverflow}
+                />
               ))}
             </div>
           </>
@@ -151,10 +200,9 @@ const Index = () => {
 
       {/* Content */}
       <main className="mx-auto max-w-lg px-5 pt-2">
-        {/* Social proof banner */}
         <SocialProofBanner />
 
-        <Tabs defaultValue="partner" className="w-full">
+        <Tabs defaultValue="group" className="w-full">
           <TabsList className="w-full rounded-full bg-muted p-1 h-11">
             <TabsTrigger
               value="partner"
@@ -192,6 +240,8 @@ const Index = () => {
       </main>
 
       <JoinModal plan={selectedPlan} open={modalOpen} onClose={() => setModalOpen(false)} />
+      <WaitlistModal plan={waitlistPlan} open={waitlistOpen} onClose={() => setWaitlistOpen(false)} />
+      <OverflowModal cluster={overflowCluster} open={overflowOpen} onClose={() => setOverflowOpen(false)} />
       <BottomNav />
     </div>
   );

@@ -8,6 +8,7 @@ interface PlanCardProps {
   plan: Plan;
   onJoin: (plan: Plan) => void;
   featured?: boolean;
+  compact?: boolean;
 }
 
 const avatarPhotos: Record<string, string> = {
@@ -65,9 +66,10 @@ const MemberAvatars = ({ avatars, count, featured }: { avatars: string[]; count:
   );
 };
 
-const PlanCard = ({ plan, onJoin, featured = false }: PlanCardProps) => {
+const PlanCard = ({ plan, onJoin, featured = false, compact = false }: PlanCardProps) => {
   const accentColor = categoryColors[plan.category];
-  const isUrgent = plan.spotsLeft <= 2;
+  const isUrgent = plan.spotsLeft <= 2 && plan.spotsLeft > 0;
+  const isFull = plan.status === 'full';
   const hostPhoto = avatarPhotos[plan.creatorAvatar];
 
   return (
@@ -168,7 +170,11 @@ const PlanCard = ({ plan, onJoin, featured = false }: PlanCardProps) => {
           <div className="flex items-center justify-between">
             <MemberAvatars avatars={plan.memberAvatars} count={plan.currentMembers} featured={featured} />
             <div className="flex items-center gap-2">
-              {isUrgent && (
+              {isFull ? (
+                <span className="text-[10px] font-semibold text-destructive bg-destructive/10 px-2.5 py-1 rounded-full">
+                  Full{plan.waitlistCount ? ` · ${plan.waitlistCount} waiting` : ''}
+                </span>
+              ) : isUrgent ? (
                 <motion.span
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -176,16 +182,22 @@ const PlanCard = ({ plan, onJoin, featured = false }: PlanCardProps) => {
                 >
                   {plan.spotsLeft === 1 ? 'Last spot!' : `${plan.spotsLeft} spots left`}
                 </motion.span>
+              ) : null}
+              {plan.repeatParticipants && plan.repeatParticipants > 0 && (
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {plan.repeatParticipants} from your past meetups
+                </span>
               )}
               <motion.div whileTap={{ scale: 0.85 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }}>
                 <Button
                   size="sm"
+                  variant={isFull ? 'outline' : 'default'}
                   className={`rounded-full font-semibold shadow-sm ${
-                    featured ? 'h-10 px-7 text-sm shadow-md shadow-primary/20' : 'h-9 px-6 text-xs'
+                    featured ? 'h-10 px-7 text-sm shadow-md shadow-primary/20' : compact ? 'h-8 px-5 text-xs' : 'h-9 px-6 text-xs'
                   }`}
                   onClick={() => onJoin(plan)}
                 >
-                  Join
+                  {isFull ? 'Join Waitlist' : 'Join'}
                 </Button>
               </motion.div>
             </div>
