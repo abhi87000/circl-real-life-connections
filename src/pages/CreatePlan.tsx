@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import BottomNav from '@/components/BottomNav';
-import { categoryIcons, categoryLabels, PlanCategory } from '@/data/mockData';
+import SimilarPlansPrompt from '@/components/SimilarPlansPrompt';
+import { categoryIcons, categoryLabels, PlanCategory, mockPlans } from '@/data/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -15,7 +16,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 
-const steps = ['Category', 'Type', 'Location', 'Date & Time', 'Details', 'Confirm'];
+const steps = ['Category', 'Type', 'Location', 'Date & Time', 'Details', 'Similar', 'Confirm'];
 
 const CreatePlan = () => {
   const navigate = useNavigate();
@@ -29,6 +30,11 @@ const CreatePlan = () => {
   const [genderPref, setGenderPref] = useState('any');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [showSimilar, setShowSimilar] = useState(true);
+
+  const similarPlans = category
+    ? mockPlans.filter(p => p.category === category).slice(0, 3)
+    : [];
 
   const progress = ((step + 1) / steps.length) * 100;
 
@@ -252,8 +258,23 @@ const CreatePlan = () => {
               </div>
             )}
 
-            {/* Step 5: Confirm */}
+            {/* Step 5: Similar Plans */}
             {step === 5 && (
+              <div>
+                {similarPlans.length > 0 && showSimilar ? (
+                  <SimilarPlansPrompt
+                    plans={similarPlans}
+                    onJoinExisting={() => navigate('/')}
+                    onContinueCreate={() => setStep(6)}
+                  />
+                ) : (
+                  (() => { setStep(6); return null; })()
+                )}
+              </div>
+            )}
+
+            {/* Step 6: Confirm */}
+            {step === 6 && (
               <div>
                 <h2 className="text-lg font-semibold mb-4">Looks good?</h2>
                 <Card className="rounded-2xl">

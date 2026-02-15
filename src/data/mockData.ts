@@ -1,5 +1,6 @@
 export type PlanCategory = 'movie' | 'gym' | 'coffee' | 'study' | 'travel' | 'jogging' | 'hobby' | 'event';
 export type PlanType = 'partner' | 'group';
+export type PlanStatus = 'open' | 'full' | 'waitlist';
 
 export interface Plan {
   id: string;
@@ -16,12 +17,27 @@ export interface Plan {
   creatorAvatar: string;
   creatorRating: number;
   creatorTagline: string;
+  creatorCompletedGroups?: number;
   description: string;
   memberAvatars: string[];
   spotsLeft: number;
   isHot?: boolean;
   isTrending?: boolean;
   startsInHours?: number;
+  status?: PlanStatus;
+  waitlistCount?: number;
+  repeatParticipants?: number;
+}
+
+export interface TimeCluster {
+  id: string;
+  category: PlanCategory;
+  timeSlot: string;
+  date: string;
+  totalInterested: number;
+  plans: Plan[];
+  waitlistOverflow: number;
+  suggestedNewTime?: string;
 }
 
 export interface UserProfile {
@@ -79,18 +95,66 @@ export const mockPlans: Plan[] = [
     time: '6:30 PM',
     date: 'Sat, Feb 15',
     groupSize: 6,
-    currentMembers: 4,
-    genderRatio: { male: 2, female: 2, other: 0 },
+    currentMembers: 6,
+    genderRatio: { male: 3, female: 3, other: 0 },
     creatorName: 'Arjun M.',
     creatorAvatar: 'AM',
     creatorRating: 4.7,
     creatorTagline: 'Film Buff • UX Designer',
+    creatorCompletedGroups: 12,
     description: 'Grabbing tickets for the latest release. Join us!',
-    memberAvatars: ['AM', 'PS', 'NK', 'RD'],
-    spotsLeft: 2,
+    memberAvatars: ['AM', 'PS', 'NK', 'RD', 'DM', 'AK'],
+    spotsLeft: 0,
     isHot: true,
     isTrending: true,
     startsInHours: 3,
+    status: 'full',
+    waitlistCount: 4,
+  },
+  {
+    id: '1b',
+    title: "Movie night — new Marvel release",
+    category: 'movie',
+    type: 'group',
+    location: 'PVR Koramangala',
+    time: '7:00 PM',
+    date: 'Sat, Feb 15',
+    groupSize: 5,
+    currentMembers: 5,
+    genderRatio: { male: 2, female: 3, other: 0 },
+    creatorName: 'Neha K.',
+    creatorAvatar: 'NK',
+    creatorRating: 4.5,
+    creatorTagline: 'Film Critic • Writer',
+    creatorCompletedGroups: 8,
+    description: 'Marvel fans unite! Let\'s watch together.',
+    memberAvatars: ['NK', 'SR', 'AT', 'MJ', 'RP'],
+    spotsLeft: 0,
+    status: 'full',
+    waitlistCount: 3,
+    startsInHours: 3,
+  },
+  {
+    id: '1c',
+    title: "Casual movie evening — all welcome",
+    category: 'movie',
+    type: 'group',
+    location: 'INOX, Forum Mall',
+    time: '7:15 PM',
+    date: 'Sat, Feb 15',
+    groupSize: 6,
+    currentMembers: 3,
+    genderRatio: { male: 1, female: 2, other: 0 },
+    creatorName: 'Priya S.',
+    creatorAvatar: 'PS',
+    creatorRating: 4.8,
+    creatorTagline: 'Cinephile • Backend Dev',
+    creatorCompletedGroups: 15,
+    description: 'Open group for tonight\'s movie. Popcorn\'s on me!',
+    memberAvatars: ['PS', 'VD', 'KS'],
+    spotsLeft: 3,
+    startsInHours: 4,
+    status: 'open',
   },
   {
     id: '2',
@@ -107,10 +171,13 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'RK',
     creatorRating: 4.9,
     creatorTagline: 'Fitness Coach • Early Riser',
+    creatorCompletedGroups: 28,
     description: 'Looking for someone serious about morning workouts.',
     memberAvatars: ['RK'],
     spotsLeft: 1,
     startsInHours: 14,
+    status: 'open',
+    repeatParticipants: 2,
   },
   {
     id: '3',
@@ -121,18 +188,21 @@ export const mockPlans: Plan[] = [
     time: '4:00 PM',
     date: 'Sun, Feb 16',
     groupSize: 4,
-    currentMembers: 3,
-    genderRatio: { male: 1, female: 2, other: 0 },
+    currentMembers: 4,
+    genderRatio: { male: 1, female: 3, other: 0 },
     creatorName: 'Priya S.',
     creatorAvatar: 'PS',
     creatorRating: 4.8,
     creatorTagline: 'Backend Dev • Coffee Snob',
+    creatorCompletedGroups: 15,
     description: 'Casual coding over great coffee. All levels welcome.',
-    memberAvatars: ['PS', 'DM', 'AK'],
-    spotsLeft: 1,
+    memberAvatars: ['PS', 'DM', 'AK', 'SR'],
+    spotsLeft: 0,
     isHot: true,
     isTrending: true,
     startsInHours: 5,
+    status: 'full',
+    waitlistCount: 5,
   },
   {
     id: '4',
@@ -149,10 +219,12 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'SR',
     creatorRating: 4.6,
     creatorTagline: 'UPSC Aspirant • 2nd Attempt',
+    creatorCompletedGroups: 6,
     description: 'Consistent study group for prelims. Serious members only.',
     memberAvatars: ['SR', 'AK', 'MJ', 'RP'],
     spotsLeft: 1,
     isHot: true,
+    status: 'open',
   },
   {
     id: '5',
@@ -169,11 +241,13 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'AT',
     creatorRating: 4.5,
     creatorTagline: 'Runner • Marketing Lead',
+    creatorCompletedGroups: 9,
     description: 'Looking for a jogging buddy for weekend mornings. 5K pace.',
     memberAvatars: ['AT'],
     spotsLeft: 1,
     isTrending: true,
     startsInHours: 8,
+    status: 'open',
   },
   {
     id: '6',
@@ -190,9 +264,34 @@ export const mockPlans: Plan[] = [
     creatorAvatar: 'VD',
     creatorRating: 4.8,
     creatorTagline: 'Trek Leader • Photographer',
+    creatorCompletedGroups: 22,
     description: 'Early morning trek with sunrise view. Transport arranged.',
     memberAvatars: ['VD', 'KS', 'RN', 'AP', 'SG'],
     spotsLeft: 3,
+    status: 'open',
+  },
+];
+
+export const mockTimeClusters: TimeCluster[] = [
+  {
+    id: 'tc1',
+    category: 'movie',
+    timeSlot: '7 PM',
+    date: 'Sat, Feb 15',
+    totalInterested: 18,
+    plans: mockPlans.filter(p => p.category === 'movie'),
+    waitlistOverflow: 7,
+    suggestedNewTime: '7:30 PM',
+  },
+  {
+    id: 'tc2',
+    category: 'coffee',
+    timeSlot: '4 PM',
+    date: 'Sun, Feb 16',
+    totalInterested: 9,
+    plans: mockPlans.filter(p => p.category === 'coffee'),
+    waitlistOverflow: 5,
+    suggestedNewTime: '4:30 PM',
   },
 ];
 
