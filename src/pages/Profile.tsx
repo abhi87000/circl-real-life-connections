@@ -36,7 +36,7 @@ const Profile = () => {
               <span className="flex items-center gap-0.5">
                 <Star className="h-3 w-3 fill-primary text-primary" /> {p.rating}
               </span>
-              <span>{p.totalMeetups} meetups</span>
+              <span>{p.totalCircles} circles completed</span>
             </div>
           </div>
         </motion.div>
@@ -72,11 +72,11 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Past Groups */}
+        {/* Past Circles */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">Past Meetups</h3>
+          <h3 className="text-sm font-semibold mb-3">Past Circles</h3>
           <div className="space-y-2">
-            {p.pastGroups.map((group, i) => (
+            {p.pastCircles.map((circle, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -10 }}
@@ -85,10 +85,10 @@ const Profile = () => {
               >
                 <Card className="rounded-xl">
                   <CardContent className="p-3 flex items-center gap-3">
-                    <span className="text-lg">{categoryIcons[group.category]}</span>
+                    <span className="text-lg">{categoryIcons[circle.category]}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{group.title}</p>
-                      <p className="text-[10px] text-muted-foreground">{group.date} · {group.members} members</p>
+                      <p className="text-sm font-medium truncate">{circle.title}</p>
+                      <p className="text-[10px] text-muted-foreground">{circle.date} · {circle.members} people · {circle.sessions} sessions</p>
                     </div>
                   </CardContent>
                 </Card>
