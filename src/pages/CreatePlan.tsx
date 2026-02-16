@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import BottomNav from '@/components/BottomNav';
-import SimilarPlansPrompt from '@/components/SimilarPlansPrompt';
-import { categoryIcons, categoryLabels, PlanCategory, mockPlans } from '@/data/mockData';
+import { categoryIcons, categoryLabels, CircleCategory, CircleDuration } from '@/data/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -16,32 +15,33 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 
-const steps = ['Category', 'Type', 'Location', 'Date & Time', 'Details', 'Similar', 'Confirm'];
+const steps = ['Intent', 'Duration', 'Location', 'Schedule', 'Details', 'Confirm'];
+
+const durationOptions: { value: CircleDuration; label: string; desc: string }[] = [
+  { value: 'one-time', label: 'One-time', desc: 'Just once' },
+  { value: '2-week', label: '2 weeks', desc: '2–4 sessions' },
+  { value: '4-week', label: '4 weeks', desc: '4–8 sessions (recommended)' },
+  { value: 'custom', label: 'Custom', desc: 'Up to 6 sessions' },
+];
 
 const CreatePlan = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [category, setCategory] = useState<PlanCategory | null>(null);
-  const [planType, setPlanType] = useState<'partner' | 'group' | null>(null);
+  const [category, setCategory] = useState<CircleCategory | null>(null);
+  const [duration, setDuration] = useState<CircleDuration>('4-week');
   const [location, setLocation] = useState('');
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState('');
   const [groupSize, setGroupSize] = useState(4);
-  const [genderPref, setGenderPref] = useState('any');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [showSimilar, setShowSimilar] = useState(true);
-
-  const similarPlans = category
-    ? mockPlans.filter(p => p.category === category).slice(0, 3)
-    : [];
 
   const progress = ((step + 1) / steps.length) * 100;
 
   const canNext = () => {
     switch (step) {
       case 0: return !!category;
-      case 1: return !!planType;
+      case 1: return !!duration;
       case 2: return location.trim().length > 0;
       case 3: return !!date && time.trim().length > 0;
       case 4: return description.trim().length > 0;
@@ -76,8 +76,8 @@ const CreatePlan = () => {
           >
             <Check className="h-10 w-10 text-primary" />
           </motion.div>
-          <h2 className="text-xl font-bold text-foreground">Plan Created!</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Your plan is now live. Others can find and join it.</p>
+          <h2 className="text-xl font-bold text-foreground">Circle Created!</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Your circle is live. People can now find and join it.</p>
         </motion.div>
         <BottomNav />
       </div>
@@ -93,7 +93,7 @@ const CreatePlan = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-base font-semibold text-foreground">Create Plan</h1>
+              <h1 className="text-base font-semibold text-foreground">Start a Circle</h1>
               <p className="text-[10px] text-muted-foreground">{steps[step]}</p>
             </div>
             <span className="text-xs text-muted-foreground">{step + 1}/{steps.length}</span>
@@ -105,13 +105,13 @@ const CreatePlan = () => {
       <main className="mx-auto max-w-lg px-4 pt-6">
         <AnimatePresence mode="wait">
           <motion.div key={step} variants={pageVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.2 }}>
-            {/* Step 0: Category */}
+            {/* Step 0: Intent / Category */}
             {step === 0 && (
               <div>
-                <h2 className="text-lg font-semibold mb-1">What's the plan?</h2>
-                <p className="text-sm text-muted-foreground mb-5">Choose a category</p>
+                <h2 className="text-lg font-semibold mb-1">What's your circle about?</h2>
+                <p className="text-sm text-muted-foreground mb-5">Choose an intent</p>
                 <div className="grid grid-cols-2 gap-3">
-                  {(Object.keys(categoryIcons) as PlanCategory[]).map((cat) => (
+                  {(Object.keys(categoryIcons) as CircleCategory[]).map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setCategory(cat)}
@@ -130,34 +130,34 @@ const CreatePlan = () => {
               </div>
             )}
 
-            {/* Step 1: Type */}
+            {/* Step 1: Duration */}
             {step === 1 && (
               <div>
-                <h2 className="text-lg font-semibold mb-1">Partner or Group?</h2>
-                <p className="text-sm text-muted-foreground mb-5">How many people?</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setPlanType('partner')}
-                    className={cn(
-                      'rounded-xl border p-6 text-center transition-all',
-                      planType === 'partner' ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/30'
-                    )}
-                  >
-                    <span className="text-3xl block mb-2">👤</span>
-                    <span className="text-sm font-semibold">1:1 Partner</span>
-                    <p className="text-[10px] text-muted-foreground mt-1">Find one person</p>
-                  </button>
-                  <button
-                    onClick={() => setPlanType('group')}
-                    className={cn(
-                      'rounded-xl border p-6 text-center transition-all',
-                      planType === 'group' ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/30'
-                    )}
-                  >
-                    <span className="text-3xl block mb-2">👥</span>
-                    <span className="text-sm font-semibold">Group</span>
-                    <p className="text-[10px] text-muted-foreground mt-1">Multiple people</p>
-                  </button>
+                <h2 className="text-lg font-semibold mb-1">How long should this circle run?</h2>
+                <p className="text-sm text-muted-foreground mb-5">Recurring circles build deeper connections</p>
+                <div className="space-y-3">
+                  {durationOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setDuration(opt.value)}
+                      className={cn(
+                        'w-full flex items-center justify-between rounded-xl border p-4 transition-all text-left',
+                        duration === opt.value
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border hover:border-primary/30'
+                      )}
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">{opt.label}</p>
+                        <p className="text-[11px] text-muted-foreground">{opt.desc}</p>
+                      </div>
+                      {opt.value === '4-week' && (
+                        <span className="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                          Recommended
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -165,10 +165,10 @@ const CreatePlan = () => {
             {/* Step 2: Location */}
             {step === 2 && (
               <div>
-                <h2 className="text-lg font-semibold mb-1">Where?</h2>
+                <h2 className="text-lg font-semibold mb-1">Where will you meet?</h2>
                 <p className="text-sm text-muted-foreground mb-5">Add a location</p>
                 <Input
-                  placeholder="e.g. Cubbon Park, Bangalore"
+                  placeholder="e.g. Third Wave Coffee, HSR Layout"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="rounded-xl h-12"
@@ -176,11 +176,11 @@ const CreatePlan = () => {
               </div>
             )}
 
-            {/* Step 3: Date & Time */}
+            {/* Step 3: Schedule */}
             {step === 3 && (
               <div>
-                <h2 className="text-lg font-semibold mb-1">When?</h2>
-                <p className="text-sm text-muted-foreground mb-5">Pick date and time</p>
+                <h2 className="text-lg font-semibold mb-1">When does it start?</h2>
+                <p className="text-sm text-muted-foreground mb-5">Pick date and time for the first session</p>
                 <div className="space-y-3">
                   <Popover>
                     <PopoverTrigger asChild>
@@ -206,49 +206,31 @@ const CreatePlan = () => {
             {/* Step 4: Details */}
             {step === 4 && (
               <div>
-                <h2 className="text-lg font-semibold mb-1">Details</h2>
-                <p className="text-sm text-muted-foreground mb-5">Add some info</p>
+                <h2 className="text-lg font-semibold mb-1">Tell people about your circle</h2>
+                <p className="text-sm text-muted-foreground mb-5">What should they expect?</p>
                 <div className="space-y-4">
-                  {planType === 'group' && (
-                    <div>
-                      <label className="text-sm font-medium mb-1.5 block">Group size</label>
-                      <div className="flex items-center gap-3">
-                        {[3, 4, 5, 6, 8].map((n) => (
-                          <button
-                            key={n}
-                            onClick={() => setGroupSize(n)}
-                            className={cn(
-                              'h-10 w-10 rounded-full border text-sm font-medium transition-all',
-                              groupSize === n ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/30'
-                            )}
-                          >
-                            {n}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">Gender preference</label>
-                    <div className="flex gap-2">
-                      {['any', 'male', 'female', 'mixed'].map((g) => (
+                    <label className="text-sm font-medium mb-1.5 block">Circle size (max 6)</label>
+                    <div className="flex items-center gap-3">
+                      {[3, 4, 5, 6].map((n) => (
                         <button
-                          key={g}
-                          onClick={() => setGenderPref(g)}
+                          key={n}
+                          onClick={() => setGroupSize(n)}
                           className={cn(
-                            'rounded-full border px-4 py-2 text-xs font-medium capitalize transition-all',
-                            genderPref === g ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/30'
+                            'h-10 w-10 rounded-full border text-sm font-medium transition-all',
+                            groupSize === n ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/30'
                           )}
                         >
-                          {g === 'any' ? 'No preference' : g}
+                          {n}
                         </button>
                       ))}
                     </div>
+                    <p className="text-[10px] text-muted-foreground mt-1.5">Limited to 6 people for better connection</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1.5 block">Description</label>
                     <Textarea
-                      placeholder="Tell people about this plan..."
+                      placeholder="What's the vibe? What will you do together?"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="rounded-xl min-h-[100px] resize-none"
@@ -258,38 +240,23 @@ const CreatePlan = () => {
               </div>
             )}
 
-            {/* Step 5: Similar Plans */}
+            {/* Step 5: Confirm */}
             {step === 5 && (
               <div>
-                {similarPlans.length > 0 && showSimilar ? (
-                  <SimilarPlansPrompt
-                    plans={similarPlans}
-                    onJoinExisting={() => navigate('/')}
-                    onContinueCreate={() => setStep(6)}
-                  />
-                ) : (
-                  (() => { setStep(6); return null; })()
-                )}
-              </div>
-            )}
-
-            {/* Step 6: Confirm */}
-            {step === 6 && (
-              <div>
-                <h2 className="text-lg font-semibold mb-4">Looks good?</h2>
+                <h2 className="text-lg font-semibold mb-4">Ready to start your circle?</h2>
                 <Card className="rounded-2xl">
                   <CardContent className="p-5 space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">{category && categoryIcons[category]}</span>
                       <span className="font-semibold">{category && categoryLabels[category]}</span>
                       <span className="ml-auto text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">
-                        {planType === 'partner' ? '1:1' : `Group of ${groupSize}`}
+                        {groupSize} people max
                       </span>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p>📍 {location}</p>
                       <p>📅 {date ? format(date, 'PPP') : '—'} · {time || '—'}</p>
-                      <p>👤 {genderPref === 'any' ? 'No preference' : genderPref}</p>
+                      <p>🔄 {durationOptions.find(d => d.value === duration)?.label}</p>
                     </div>
                     <p className="text-sm border-t pt-3">{description}</p>
                   </CardContent>
@@ -312,7 +279,7 @@ const CreatePlan = () => {
             </Button>
           ) : (
             <Button onClick={handleSubmit} className="rounded-full flex-1">
-              Create Plan
+              Start Circle
             </Button>
           )}
         </div>
